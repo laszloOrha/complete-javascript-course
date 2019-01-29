@@ -52,10 +52,12 @@ let budgetController = (function () {
 let UIController = (function () {
 
     let DOMStrings = {
-      inputType:".add__type",
-      description:".add__description",
-      value: ".add__value",
-      inputButton: ".add__btn"
+        inputType:".add__type",
+        description:".add__description",
+        value: ".add__value",
+        inputButton: ".add__btn",
+        incomeContainer: ".income__list",
+        expensesContainer: ".expenses__list"
     };
 
     return {
@@ -69,6 +71,43 @@ let UIController = (function () {
                 description: document.querySelector(DOMStrings.description).value,
                 value: document.querySelector(DOMStrings.value).value
             }
+        },
+
+        displayItem: function (newItem, type) {
+            let HTMLToInsert, container;
+            let incomeHTML = '<div class="item clearfix" id="income-%id%">\n' +
+                '                            <div class="item__description">%description%</div>\n' +
+                '                            <div class="right clearfix">\n' +
+                '                                <div class="item__value">%value%</div>\n' +
+                '                                <div class="item__delete">\n' +
+                '                                    <button class="item__delete--btn"><i class="ion-ios-close-outline"></i></button>\n' +
+                '                                </div>\n' +
+                '                            </div>\n' +
+                '                        </div>';
+
+            let expensesHTML ='<div class="item clearfix" id="expense-%id%">\n' +
+                '                            <div class="item__description">%description%</div>\n' +
+                '                            <div class="right clearfix">\n' +
+                '                                <div class="item__value">%value%</div>\n' +
+                '                                <div class="item__percentage">%percentage%</div>\n' +
+                '                                <div class="item__delete">\n' +
+                '                                    <button class="item__delete--btn"><i class="ion-ios-close-outline"></i></button>\n' +
+                '                                </div>\n' +
+                '                            </div>\n' +
+                '                        </div>';
+
+            if(type === 'inc') {
+                HTMLToInsert = incomeHTML;
+                container = document.querySelector(DOMStrings.incomeContainer);
+            }else {
+                HTMLToInsert = expensesHTML;
+                container = document.querySelector(DOMStrings.expensesContainer);
+            }
+            HTMLToInsert = HTMLToInsert.replace('%id%', newItem.id);
+            HTMLToInsert = HTMLToInsert.replace('%description%', newItem.description);
+            HTMLToInsert = HTMLToInsert.replace('%value%', newItem.value);
+
+            container.insertAdjacentHTML('beforeend', HTMLToInsert);
         }
     }
 })();
@@ -82,11 +121,16 @@ let appController = (function () {
     }
 
     function controlAddItem() {
-        let input = UIController.getInput();
+        let input, newItem;
+        input = UIController.getInput();
 
         if(input.description !== '' && !isNaN(input.value) && input.value > 0) {
-            console.log(budgetController.addItem(input.inputType, input.description, input.value));
+            newItem = budgetController.addItem(input.inputType, input.description, input.value);
+
+            UIController.displayItem(newItem, input.inputType)
         }
+
+
     }
 
     return {
