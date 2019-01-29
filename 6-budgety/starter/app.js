@@ -57,7 +57,9 @@ let UIController = (function () {
         value: ".add__value",
         inputButton: ".add__btn",
         incomeContainer: ".income__list",
-        expensesContainer: ".expenses__list"
+        expensesContainer: ".expenses__list",
+        descriptionField: '.add__description',
+        valueField: '.add__value'
     };
 
     return {
@@ -108,6 +110,15 @@ let UIController = (function () {
             HTMLToInsert = HTMLToInsert.replace('%value%', newItem.value);
 
             container.insertAdjacentHTML('beforeend', HTMLToInsert);
+        },
+
+        clearFields: function() {
+            let descField = document.querySelector(DOMStrings.descriptionField);
+            let valueField = document.querySelector(DOMStrings.valueField);
+
+            descField.value = '';
+            valueField.value = '';
+            descField.focus();
         }
     }
 })();
@@ -132,7 +143,9 @@ let appController = (function () {
         if(input.description !== '' && !isNaN(input.value) && input.value > 0) {
             newItem = budgetController.addItem(input.inputType, input.description, input.value);
 
-            UIController.displayItem(newItem, input.inputType)
+            UIController.displayItem(newItem, input.inputType);
+
+            UIController.clearFields();
         }
 
 
