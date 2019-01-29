@@ -66,6 +66,19 @@ let budgetController = (function () {
 
         getBudget: function () {
             return data;
+        },
+
+        deleteItem: function (type, IDNumber) {
+            let indexToDelete;
+            let itemArray = data.items[type];
+
+            for(let item of itemArray) {
+                if(item.id === IDNumber) {
+                    indexToDelete = itemArray.indexOf(item);
+                }
+            }
+            itemArray.splice(indexToDelete, 1);
+
         }
     }
 })();
@@ -87,7 +100,7 @@ let UIController = (function () {
     };
 
     return {
-        getDOMstrings: function() {
+        getDOMStrings: function() {
             return DOMStrings;
         },
 
@@ -106,7 +119,7 @@ let UIController = (function () {
                 '                            <div class="right clearfix">\n' +
                 '                                <div class="item__value">%value%</div>\n' +
                 '                                <div class="item__delete">\n' +
-                '                                    <button class="item__delete--btn"><i class="ion-ios-close-outline"></i></button>\n' +
+                '                                    <button class="item__delete--btn"><i class="ion-ios-close-outline" id="inc-%buttonid%"></i></button>\n' +
                 '                                </div>\n' +
                 '                            </div>\n' +
                 '                        </div>';
@@ -115,9 +128,9 @@ let UIController = (function () {
                 '                            <div class="item__description">%description%</div>\n' +
                 '                            <div class="right clearfix">\n' +
                 '                                <div class="item__value">%value%</div>\n' +
-                '                                <div class="item__percentage">%percentage%</div>\n' +
+                '                                <div class="item__percentage">%p%</div>\n' +
                 '                                <div class="item__delete">\n' +
-                '                                    <button class="item__delete--btn"><i class="ion-ios-close-outline"></i></button>\n' +
+                '                                    <button class="item__delete--btn"><i class="ion-ios-close-outline" id="exp-%buttonid%"></i></button>\n' +
                 '                                </div>\n' +
                 '                            </div>\n' +
                 '                        </div>';
@@ -130,6 +143,7 @@ let UIController = (function () {
                 container = document.querySelector(DOMStrings.expensesContainer);
             }
             HTMLToInsert = HTMLToInsert.replace('%id%', newItem.id);
+            HTMLToInsert = HTMLToInsert.replace('%buttonid%', newItem.id);
             HTMLToInsert = HTMLToInsert.replace('%description%', newItem.description);
             HTMLToInsert = HTMLToInsert.replace('%value%', newItem.value);
 
@@ -154,13 +168,27 @@ let UIController = (function () {
             document.querySelector(DOMStrings.totalIncLabel).innerText = totalInc;
             document.querySelector(DOMStrings.totalExpLabel).innerText = totalExp;
 
+        },
+
+        deleteListItem: function (type, IDNumber) {
+            let IDPrefix;
+
+            if(type === 'inc'){
+                IDPrefix = 'income-';
+            }else{
+                IDPrefix= 'expense-';
+            }
+
+            let ID = IDPrefix + IDNumber;
+
+            document.getElementById(ID).remove();
         }
     }
 })();
 
 let appController = (function() {
 
-    let DOM = UIController.getDOMstrings();
+    let DOM = UIController.getDOMStrings();
 
     function setupEventListeners() {
         document.querySelector(DOM.inputButton).addEventListener('click', controlAddItem);
@@ -180,10 +208,27 @@ let appController = (function() {
 
             UIController.displayItem(newItem, input.inputType);
 
+            addDeleteListener(newItem.id, input.inputType);
+
             UIController.clearFields();
 
             updateBudget();
         }
+    }
+
+    function controlDeleteItem() {
+        let IDArray = this.id.split('-');
+        let type = IDArray[0];
+        let IDNumber = IDArray[1];
+
+        budgetController.deleteItem(type, IDNumber);
+        UIController.deleteListItem(type, IDNumber);
+        updateBudget();
+    }
+
+    function addDeleteListener(ID, inputType) {
+        let target = document.getElementById(inputType + '-' + ID);
+        target.addEventListener('click', controlDeleteItem)
     }
 
     function updateBudget() {
