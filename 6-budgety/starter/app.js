@@ -27,15 +27,24 @@ let budgetController = (function () {
 
     return {
         addItem: function (type, desc, value) {
-            let itemToAdd;
+            let itemToAdd, ID;
+            let itemArray = data.items[type];
 
-            if (type === 'inc') {
-                itemToAdd = new Income(0, desc, value)
-            } else {
-                itemToAdd = new Expense(0, desc, value)
+            if(itemArray.length > 0) {
+                ID = itemArray[itemArray.length - 1].id + 1;
+            }else{
+                ID = 1;
             }
 
-            data.items.type.push(itemToAdd)
+            if (type === 'inc') {
+                itemToAdd = new Income(ID, desc, value)
+            } else {
+                itemToAdd = new Expense(ID, desc, value)
+            }
+
+            itemArray.push(itemToAdd);
+
+            return itemToAdd;
         }
     }
 })();
@@ -73,7 +82,11 @@ let appController = (function () {
     }
 
     function controlAddItem() {
-        console.log(UIController.getInput());
+        let input = UIController.getInput();
+
+        if(input.description !== '' && !isNaN(input.value) && input.value > 0) {
+            console.log(budgetController.addItem(input.inputType, input.description, input.value));
+        }
     }
 
     return {
