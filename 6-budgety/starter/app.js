@@ -138,7 +138,8 @@ let UIController = (function () {
         totalIncLabel: ".budget__income--value",
         totalExpLabel: ".budget__expenses--value",
         allPercLabel: ".budget__expenses--percentage",
-        itemPercLabel: ".item__percentage"
+        itemPercLabel: ".item__percentage",
+        dateLabel: ".budget__title--month"
     };
 
     return {
@@ -226,17 +227,26 @@ let UIController = (function () {
             document.getElementById(ID).remove();
         },
 
-        displayPercentages (percentageData) {
+        displayPercentages: function (percentageData) {
             let totalPerc = percentageData.totalPerc;
             let itemPercArr = percentageData.itemPercArr;
 
             document.querySelector(DOMStrings.allPercLabel).innerText = totalPerc + '%';
             let itemPercFields = document.querySelectorAll(DOMStrings.itemPercLabel);
-            console.log(itemPercFields);
 
             for (let i = 0; i < itemPercFields.length; i++) {
                 itemPercFields[i].innerText = itemPercArr[i] + '%';
             }
+        },
+
+        displayMonth: function () {
+            const monthNames = ["January", "February", "March", "April", "May", "June",
+                "July", "August", "September", "October", "November", "December"];
+            let now = new Date;
+            let year = now.getFullYear();
+            let month = monthNames[now.getMonth()];
+
+            document.querySelector(DOMStrings.dateLabel).innerText = year + ' ' + month;
         }
     }
 })();
@@ -309,6 +319,9 @@ let appController = (function() {
     return {
             init: function () {
                 setupEventListeners();
+                updateBudget();
+                updatePercentages();
+                UIController.displayMonth();
             }
         }
 
