@@ -139,8 +139,14 @@ let UIController = (function () {
         totalExpLabel: ".budget__expenses--value",
         allPercLabel: ".budget__expenses--percentage",
         itemPercLabel: ".item__percentage",
-        dateLabel: ".budget__title--month"
+        dateLabel: ".budget__title--month",
+
+
     };
+
+    function formatNumber(number) {
+        return number.toLocaleString(undefined, {minimumFractionDigits: 2})
+    }
 
     return {
         getDOMStrings: function() {
@@ -180,15 +186,16 @@ let UIController = (function () {
 
             if(type === 'inc') {
                 HTMLToInsert = incomeHTML;
+                HTMLToInsert = HTMLToInsert.replace('%value%', '+ ' + formatNumber(newItem.value));
                 container = document.querySelector(DOMStrings.incomeContainer);
             }else {
                 HTMLToInsert = expensesHTML;
+                HTMLToInsert = HTMLToInsert.replace('%value%', '- ' + formatNumber(newItem.value));
                 container = document.querySelector(DOMStrings.expensesContainer);
             }
             HTMLToInsert = HTMLToInsert.replace('%id%', newItem.id);
             HTMLToInsert = HTMLToInsert.replace('%buttonid%', newItem.id);
             HTMLToInsert = HTMLToInsert.replace('%description%', newItem.description);
-            HTMLToInsert = HTMLToInsert.replace('%value%', newItem.value);
 
             container.insertAdjacentHTML('beforeend', HTMLToInsert);
         },
@@ -207,9 +214,9 @@ let UIController = (function () {
             let totalInc = budgetInfo.totals.inc;
             let totalExp = budgetInfo.totals.exp;
 
-            document.querySelector(DOMStrings.budgetLabel).innerText = budget;
-            document.querySelector(DOMStrings.totalIncLabel).innerText = totalInc;
-            document.querySelector(DOMStrings.totalExpLabel).innerText = totalExp;
+            document.querySelector(DOMStrings.budgetLabel).innerText = formatNumber(budget);
+            document.querySelector(DOMStrings.totalIncLabel).innerText = formatNumber(totalInc);
+            document.querySelector(DOMStrings.totalExpLabel).innerText = formatNumber(totalExp);
 
         },
 
@@ -231,11 +238,19 @@ let UIController = (function () {
             let totalPerc = percentageData.totalPerc;
             let itemPercArr = percentageData.itemPercArr;
 
+            if(totalPerc === -1) {
+                totalPerc = '--';
+            }
+
             document.querySelector(DOMStrings.allPercLabel).innerText = totalPerc + '%';
             let itemPercFields = document.querySelectorAll(DOMStrings.itemPercLabel);
 
             for (let i = 0; i < itemPercFields.length; i++) {
-                itemPercFields[i].innerText = itemPercArr[i] + '%';
+                if(totalPerc > 0) {
+                    itemPercFields[i].innerText = itemPercArr[i] + '%';
+                } else {
+                    itemPercFields[i].innerText = '--%'
+                }
             }
         },
 
@@ -247,6 +262,16 @@ let UIController = (function () {
             let month = monthNames[now.getMonth()];
 
             document.querySelector(DOMStrings.dateLabel).innerText = year + ' ' + month;
+        },
+
+        changeBorder: function () {
+            let fieldsToChange = document.querySelectorAll(DOMStrings.inputType + ',' + DOMStrings.descriptionField + ',' + DOMStrings.valueField);
+            let buttonToChange = document.querySelector(DOMStrings.inputButton);
+
+            for(let field of fieldsToChange) {
+                field.classList.toggle('red-focus');
+            }
+            buttonToChange.classList.toggle('red');
         }
     }
 })();
@@ -257,11 +282,14 @@ let appController = (function() {
 
     function setupEventListeners() {
         document.querySelector(DOM.inputButton).addEventListener('click', controlAddItem);
+
         document.addEventListener('keypress', function (event) {
             if(event.keyCode === 13 || event.which === 13) {
                 controlAddItem();
             }
-        })
+        });
+
+        document.querySelector(DOM.inputType).addEventListener('change', UIController.changeBorder)
     }
 
     function controlAddItem() {
