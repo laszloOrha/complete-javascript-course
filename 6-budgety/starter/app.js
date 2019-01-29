@@ -24,6 +24,16 @@ let budgetController = (function () {
         },
         budget: 0
     };
+    
+    function calculateTotal(type) {
+        let itemArray = data.items[type];
+        let sum = 0;
+
+        for(let item of itemArray) {
+            sum += item.value;
+        }
+        data.totals[type] = sum;
+    }
 
     return {
         addItem: function (type, desc, value) {
@@ -45,6 +55,17 @@ let budgetController = (function () {
             itemArray.push(itemToAdd);
 
             return itemToAdd;
+        },
+        
+        calculateBudget: function () {
+             calculateTotal('inc');
+             calculateTotal('exp');
+
+            data.budget = data.totals.inc - data.totals.exp;
+        },
+
+        getBudget: function () {
+            return data;
         }
     }
 })();
@@ -58,8 +79,11 @@ let UIController = (function () {
         inputButton: ".add__btn",
         incomeContainer: ".income__list",
         expensesContainer: ".expenses__list",
-        descriptionField: '.add__description',
-        valueField: '.add__value'
+        descriptionField: ".add__description",
+        valueField: ".add__value",
+        budgetLabel: ".budget__value",
+        totalIncLabel: ".budget__income--value",
+        totalExpLabel: ".budget__expenses--value"
     };
 
     return {
@@ -119,11 +143,22 @@ let UIController = (function () {
             descField.value = '';
             valueField.value = '';
             descField.focus();
+        },
+
+        displayBudget: function(budgetInfo) {
+            let budget = budgetInfo.budget;
+            let totalInc = budgetInfo.totals.inc;
+            let totalExp = budgetInfo.totals.exp;
+
+            document.querySelector(DOMStrings.budgetLabel).innerText = budget;
+            document.querySelector(DOMStrings.totalIncLabel).innerText = totalInc;
+            document.querySelector(DOMStrings.totalExpLabel).innerText = totalExp;
+
         }
     }
 })();
 
-let appController = (function () {
+let appController = (function() {
 
     let DOM = UIController.getDOMstrings();
 
@@ -141,14 +176,22 @@ let appController = (function () {
         input = UIController.getInput();
 
         if(input.description !== '' && !isNaN(input.value) && input.value > 0) {
-            newItem = budgetController.addItem(input.inputType, input.description, input.value);
+            newItem = budgetController.addItem(input.inputType, input.description, parseFloat(input.value));
 
             UIController.displayItem(newItem, input.inputType);
 
             UIController.clearFields();
+
+            updateBudget();
         }
+    }
 
-
+    function updateBudget() {
+        let budgetInfo;
+        
+        budgetController.calculateBudget();
+        budgetInfo = budgetController.getBudget();
+        UIController.displayBudget(budgetInfo);
     }
 
     return {
